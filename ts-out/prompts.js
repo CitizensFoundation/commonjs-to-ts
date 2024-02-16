@@ -87,6 +87,7 @@ INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will convert the CommonJS import to a Typescript import.
 - Use the provided TEMPLATE to guide your conversion.
+- All local imports in my tree should be .js module imports (all the .cjs files will be converted to typescript/es modules).
 
 INPUTS:
 - You will be given the full CommonJS file that we are working on converting.

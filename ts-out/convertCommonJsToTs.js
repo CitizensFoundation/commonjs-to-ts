@@ -302,6 +302,11 @@ class ConvertCommonJsToTs {
             this.currentFileType = this.classifyFile(file);
             this.fullCjsFile = await fs.readFile(file, "utf8");
             this.parseSourceCodeComponents();
+            console.log(`Current file type: ${this.currentFileType}`);
+            console.log(`Current state of the conversion: ${this.currentStateOfTheConversion}`);
+            //console.log(`All types: ${this.allTypes}`);
+            //console.log(`Full project file tree: ${this.fullProjectFileTree}`);
+            console.log(`Full CJS file: ${this.fullCjsFile}`);
             console.log(`${JSON.stringify(this.cjsCodeComponents, null, 2)}`);
             console.log("Before imports conversion");
             await this.convertImports();
