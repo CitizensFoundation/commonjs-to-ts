@@ -64,8 +64,8 @@ class ConvertCommonJsToTs {
 
   async callLlm(systemMessage: string, userMessage: string) {
     console.log("Calling LLM");
-    //console.log(`System message: ${systemMessage}`);
-    //console.log(`User message: ${userMessage}`);
+    console.log(`System message: ${systemMessage}`);
+    console.log(`User message: ${userMessage}`);
     console.log("-----------------------------------------------------------");
     const completion = await openaiClient.chat.completions.create({
       model: "gpt-4-0125-preview",
@@ -95,12 +95,12 @@ class ConvertCommonJsToTs {
 
   parseSourceCodeComponents() {
     this.cjsCodeComponents = {
-        imports: [],
-        properties: [],
-        methods: [],
-        parentClass: null,
-        shell: "",
-      };
+      imports: [],
+      properties: [],
+      methods: [],
+      parentClass: null,
+      shell: "",
+    };
 
     const ast = parser.parse(this.fullCjsFile, {
       sourceType: "script",
@@ -119,7 +119,7 @@ class ConvertCommonJsToTs {
         }
       },
       CallExpression: (path: NodePath<t.CallExpression>) => {
-        if (t.isIdentifier(path.node.callee, { name: 'require' })) {
+        if (t.isIdentifier(path.node.callee, { name: "require" })) {
           // This node is a `require` call
           const argument = path.node.arguments[0];
           if (t.isStringLiteral(argument)) {
@@ -162,6 +162,42 @@ class ConvertCommonJsToTs {
             this.fullCjsFile.slice(start, end)
           );
         }
+      },
+      VariableDeclaration: (path) => {
+        path.node.declarations.forEach((declaration) => {
+          if (t.isVariableDeclarator(declaration) && t.isIdentifier(declaration.id)) {
+            // Handle simple types directly
+            if (t.isStringLiteral(declaration.init) || t.isNumericLiteral(declaration.init)) {
+              this.cjsCodeComponents.properties.push(`${declaration.id.name}: ${declaration.init.value}`);
+            }
+            // Handle complex types like new Set()
+            else if (t.isNewExpression(declaration.init) && t.isIdentifier(declaration.init.callee)) {
+              if (declaration.init.callee.name === 'Set') {
+                const args = declaration.init.arguments;
+                // Assuming the first argument to Set is an array (common use case)
+                if (args.length > 0 && t.isArrayExpression(args[0])) {
+                  const setItems = args[0].elements.map(element => {
+                    if (t.isStringLiteral(element)) {
+                      return `'${element.value}'`;
+                    } else if (t.isNumericLiteral(element)) {
+                      return element.value;
+                    } else if (t.isTemplateLiteral(element) && element.quasis.length === 1) {
+                      // For simplicity, handling simple template literals without expressions
+                      return `\`${element.quasis[0].value.raw}\``;
+                    }
+                    // Extend with more types as needed
+                    return 'unknown'; // Placeholder for elements that are not directly serializable
+                  }).join(', ');
+
+                  this.cjsCodeComponents.properties.push(`${declaration.id.name}: new Set([${setItems}])`);
+                } else {
+                  // Handle empty Set or unsupported initialization patterns
+                  this.cjsCodeComponents.properties.push(`${declaration.id.name}: new Set()`);
+                }
+              }
+            }
+          }
+        });
       },
     });
   }
@@ -342,15 +378,21 @@ class ConvertCommonJsToTs {
     const fileTree = files.map((filePath) => {
       const normalizedFilePath = path.normalize(filePath);
       // Split the path into parts
-      const pathParts = normalizedFilePath.replace(normalizedSourcePath, "").split(path.sep).filter(part => part !== "");
+      const pathParts = normalizedFilePath
+        .replace(normalizedSourcePath, "")
+        .split(path.sep)
+        .filter((part) => part !== "");
 
       // Initialize an array to hold the parts of the current path we will join for output
       let outputPathParts: string[] = [];
 
       // Determine how much of the path is shared with the last path
       let sharedPathLength = 0;
-      while (sharedPathLength < pathParts.length && sharedPathLength < lastPathParts.length &&
-             pathParts[sharedPathLength] === lastPathParts[sharedPathLength]) {
+      while (
+        sharedPathLength < pathParts.length &&
+        sharedPathLength < lastPathParts.length &&
+        pathParts[sharedPathLength] === lastPathParts[sharedPathLength]
+      ) {
         sharedPathLength++;
       }
 
@@ -371,7 +413,6 @@ class ConvertCommonJsToTs {
 
     return fileTree.join("\n");
   }
-
 
   // Main function to convert files
   async convertFiles(
@@ -408,12 +449,15 @@ class ConvertCommonJsToTs {
     for (const file of cjsFiles) {
       console.log(`---------------> Processing file: ${file}`);
       this.currentFileType = this.classifyFile(file);
+      this.fullCjsFile = "";
       this.fullCjsFile = await fs.readFile(file, "utf8");
 
       this.parseSourceCodeComponents();
 
       console.log(`Current file type: ${this.currentFileType}`);
-      console.log(`Current state of the conversion: ${this.currentStateOfTheConversion}`);
+      console.log(
+        `Current state of the conversion: ${this.currentStateOfTheConversion}`
+      );
       //console.log(`All types: ${this.allTypes}`);
       //console.log(`Full project file tree: ${this.fullProjectFileTree}`);
       console.log(`Full CJS file: ${this.fullCjsFile}`);
