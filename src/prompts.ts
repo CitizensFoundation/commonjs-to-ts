@@ -5,6 +5,8 @@ INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will convert the CommonJS file to Typescript method by method and the user will give one method to convert at the time.
 - Use the provided TEMPLATE to guide your conversion.
+- NEVER add any new functionality to the method/function.
+- NEVER add any types to the method/function, those are loaded seperatly.
 
 INPUTS:
 - You will be given the full CommonJS file to convert.
@@ -53,6 +55,8 @@ INSTRUCTIONS:
 - Use the provided TEMPLATE to guide your conversion.
 - Always output the full method/function even if you don't refine it.
 - NEVER explain.
+- NEVER add any new functionality to the method/function.
+- NEVER add any types to the method/function, those are loaded seperatly.
 
 INPUTS:
 - You will be given the full CommonJS file that has been converted convert.

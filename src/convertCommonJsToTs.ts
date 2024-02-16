@@ -94,6 +94,14 @@ class ConvertCommonJsToTs {
   }
 
   parseSourceCodeComponents() {
+    this.cjsCodeComponents = {
+        imports: [],
+        properties: [],
+        methods: [],
+        parentClass: null,
+        shell: "",
+      };
+
     const ast = parser.parse(this.fullCjsFile, {
       sourceType: "script",
       plugins: ["classProperties"],
@@ -107,6 +115,19 @@ class ConvertCommonJsToTs {
           // If superClass is an Identifier, which is a common case, get its name
           if (t.isIdentifier(superClass)) {
             this.cjsCodeComponents.parentClass = superClass.name;
+          }
+        }
+      },
+      CallExpression: (path: NodePath<t.CallExpression>) => {
+        if (t.isIdentifier(path.node.callee, { name: 'require' })) {
+          // This node is a `require` call
+          const argument = path.node.arguments[0];
+          if (t.isStringLiteral(argument)) {
+            // The argument is a string literal, we capture the required module
+            const requiredModule = argument.value;
+            // Construct a representation similar to ImportDeclaration for consistency
+            const requireStatement = `var ${requiredModule} = require('${requiredModule}');`;
+            this.cjsCodeComponents.imports.push(requireStatement);
           }
         }
       },
@@ -317,22 +338,40 @@ class ConvertCommonJsToTs {
 
     files.sort();
 
+    let lastPathParts: string[] = [];
     const fileTree = files.map((filePath) => {
       const normalizedFilePath = path.normalize(filePath);
+      // Split the path into parts
+      const pathParts = normalizedFilePath.replace(normalizedSourcePath, "").split(path.sep).filter(part => part !== "");
 
-      const depth =
-        normalizedFilePath.split(path.sep).length -
-        normalizedSourcePath.split(path.sep).length;
+      // Initialize an array to hold the parts of the current path we will join for output
+      let outputPathParts: string[] = [];
 
-      const indentation = "  ".repeat(depth); // Using two spaces for each level of depth
+      // Determine how much of the path is shared with the last path
+      let sharedPathLength = 0;
+      while (sharedPathLength < pathParts.length && sharedPathLength < lastPathParts.length &&
+             pathParts[sharedPathLength] === lastPathParts[sharedPathLength]) {
+        sharedPathLength++;
+      }
 
-      const baseName = path.basename(filePath);
+      // Build the output path parts, including indentation
+      for (let i = 0; i < pathParts.length; i++) {
+        const indentation = "  ".repeat(i);
+        if (i >= sharedPathLength) {
+          outputPathParts.push(`${indentation}${pathParts[i]}`);
+        }
+      }
 
-      return `${indentation}${baseName}`;
+      // Update lastPathParts for the next iteration
+      lastPathParts = pathParts;
+
+      // Join the output path parts for this file's line in the tree
+      return outputPathParts.join("\n");
     });
 
     return fileTree.join("\n");
   }
+
 
   // Main function to convert files
   async convertFiles(
@@ -351,6 +390,8 @@ class ConvertCommonJsToTs {
       ...tsFiles,
       ...typeFiles,
     ]);
+
+    console.log(`full project file tree: ${this.fullProjectFileTree}`);
 
     if (extraTypePath) {
       const extraTypeFiles = glob.sync(
