@@ -1,0 +1,9 @@
+export declare const methodConversionSystemMessage: (template: string) => string;
+export declare const methodConversionUserMessage: (allTypes: string, fullCjsModule: string, fullProjectFileTree: string, currentStateOfTheConversion: string, cjsMethodToConvert: string) => string;
+export declare const methodRefineSystemMessage: (template: string) => string;
+export declare const methodRefineUserMessage: (allTypes: string, fullCjsModule: string, fullProjectFileTree: string, fullyConvertedFile: string, cjsMethodToRefine: string) => string;
+export declare const importsConversionSystemMessage: (template: string) => string;
+export declare const importsConversionUserMessage: (allTypes: string, fullCjsModule: string, fullProjectFileTree: string, currentStateOfTheConversion: string, importToConvert: string) => string;
+export declare const propertiesConversionSystemMessage: (template: string) => string;
+export declare const propertiesConversionUserMessage: (allTypes: string, fullCjsModule: string, fullProjectFileTree: string, currentStateOfTheConversion: string, propertyToConvert: string) => string;
+//# sourceMappingURL=prompts.d.ts.map

@@ -1,6 +1,5 @@
 // METHODS/FUNCTIONS
-
-export const methodConversionSystemMessage = (template: string) => `
+export const methodConversionSystemMessage = (template) => `
 INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will convert the CommonJS file to Typescript method by method and the user will give one method to convert at the time.
@@ -19,14 +18,7 @@ ${template}
 OUTPUTS:
 - Only output the converted method/function nothing else, no explainations.
 `;
-
-export const methodConversionUserMessage = (
-  allTypes: string,
-  fullCjsModule: string,
-  fullProjectFileTree: string,
-  currentStateOfTheConversion: string,
-  cjsMethodToConvert: string
-) => `
+export const methodConversionUserMessage = (allTypes, fullCjsModule, fullProjectFileTree, currentStateOfTheConversion, cjsMethodToConvert) => `
 CONTEXT:
 
 Full commonJS module to convert:
@@ -45,14 +37,11 @@ CommonJS method/function to convert:
 ${cjsMethodToConvert}
 
 Your Typescript conversion:`;
-
-export const methodRefineSystemMessage = (template: string) => `
+export const methodRefineSystemMessage = (template) => `
 INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will look at the method/function the user has convertd and see if you can refine it in the context of the fully converted code.
 - Use the provided TEMPLATE to guide your conversion.
-- Always output the full method/function even if you don't refine it.
-- NEVER explain.
 
 INPUTS:
 - You will be given the full CommonJS file that has been converted convert.
@@ -67,14 +56,7 @@ ${template}
 OUTPUTS:
 - Only output the converted method/function nothing else, no explainations.
 `;
-
-export const methodRefineUserMessage = (
-  allTypes: string,
-  fullCjsModule: string,
-  fullProjectFileTree: string,
-  fullyConvertedFile: string,
-  cjsMethodToRefine: string
-) => `
+export const methodRefineUserMessage = (allTypes, fullCjsModule, fullProjectFileTree, fullyConvertedFile, cjsMethodToRefine) => `
 CONTEXT:
 
 Full commonJS module to convert:
@@ -93,9 +75,8 @@ CommonJS method/function to refine, if needed:
 ${cjsMethodToRefine}
 
 Your refined Typescript method/function:`;
-
 // IMPORTS
-export const importsConversionSystemMessage = (template: string) => `
+export const importsConversionSystemMessage = (template) => `
 INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will convert the CommonJS import to a Typescript import.
@@ -114,14 +95,7 @@ ${template}
 OUTPUTS:
 - Only output the converted import nothing else, no explainations.
 `;
-
-export const importsConversionUserMessage = (
-  allTypes: string,
-  fullCjsModule: string,
-  fullProjectFileTree: string,
-  currentStateOfTheConversion: string,
-  importToConvert: string
-) => `
+export const importsConversionUserMessage = (allTypes, fullCjsModule, fullProjectFileTree, currentStateOfTheConversion, importToConvert) => `
 CONTEXT:
 
 Full commonJS module to convert:
@@ -140,9 +114,8 @@ CommonJS import to convert:
 ${importToConvert}
 
 Your Typescript converted import:`;
-
 // Properties/attributes
-export const propertiesConversionSystemMessage = (template: string) => `
+export const propertiesConversionSystemMessage = (template) => `
 INSTRUCTIONS:
 - You are an expert CommonJS to Typescript converter.
 - You will convert the CommonJS properties to Typescript properties.
@@ -161,14 +134,7 @@ ${template}
 OUTPUTS:
 - Only output the converted property nothing else, no explainations.
 `;
-
-export const propertiesConversionUserMessage = (
-  allTypes: string,
-  fullCjsModule: string,
-  fullProjectFileTree: string,
-  currentStateOfTheConversion: string,
-  propertyToConvert: string
-) => `
+export const propertiesConversionUserMessage = (allTypes, fullCjsModule, fullProjectFileTree, currentStateOfTheConversion, propertyToConvert) => `
 CONTEXT:
 
 Full commonJS module to convert:
@@ -187,3 +153,4 @@ CommonJS property to convert:
 ${propertyToConvert}
 
 Your Typescript converted property:`;
+//# sourceMappingURL=prompts.js.map
