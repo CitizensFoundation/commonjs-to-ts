@@ -10,6 +10,7 @@
     "@babel/parser": "^7.23.9",
     "@babel/traverse": "^7.23.9",
     "@tsconfig/node20": "^20.1.2",
+    "cjstoesm": "^2.1.2",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "openai": "^4.28.0"

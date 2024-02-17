@@ -34,9 +34,9 @@ class ConvertCommonJsToTs {
     }
     async callLlm(systemMessage, userMessage) {
         console.log("Calling LLM");
-        console.log(`System message: ${systemMessage}`);
-        console.log(`User message: ${userMessage}`);
-        console.log("-----------------------------------------------------------");
+        //console.log(`System message: ${systemMessage}`);
+        //console.log(`User message: ${userMessage}`);
+        //console.log("-----------------------------------------------------------");
         const completion = await openaiClient.chat.completions.create({
             model: "gpt-4-0125-preview",
             temperature: 0.0,
@@ -55,7 +55,7 @@ class ConvertCommonJsToTs {
             llmOutput = llmOutput.replace(/```markdown/g, "");
             llmOutput = llmOutput.replace(/```/g, "");
         }
-        console.log(`----------------------> LLM Output: ${llmOutput}`);
+        console.log(`LLM Output: ${llmOutput}`);
         return llmOutput || "";
     }
     parseSourceCodeComponents() {
@@ -119,31 +119,37 @@ class ConvertCommonJsToTs {
             },
             VariableDeclaration: (path) => {
                 path.node.declarations.forEach((declaration) => {
-                    if (t.isVariableDeclarator(declaration) && t.isIdentifier(declaration.id)) {
+                    if (t.isVariableDeclarator(declaration) &&
+                        t.isIdentifier(declaration.id)) {
                         // Handle simple types directly
-                        if (t.isStringLiteral(declaration.init) || t.isNumericLiteral(declaration.init)) {
+                        if (t.isStringLiteral(declaration.init) ||
+                            t.isNumericLiteral(declaration.init)) {
                             this.cjsCodeComponents.properties.push(`${declaration.id.name}: ${declaration.init.value}`);
                         }
                         // Handle complex types like new Set()
-                        else if (t.isNewExpression(declaration.init) && t.isIdentifier(declaration.init.callee)) {
-                            if (declaration.init.callee.name === 'Set') {
+                        else if (t.isNewExpression(declaration.init) &&
+                            t.isIdentifier(declaration.init.callee)) {
+                            if (declaration.init.callee.name === "Set") {
                                 const args = declaration.init.arguments;
                                 // Assuming the first argument to Set is an array (common use case)
                                 if (args.length > 0 && t.isArrayExpression(args[0])) {
-                                    const setItems = args[0].elements.map(element => {
+                                    const setItems = args[0].elements
+                                        .map((element) => {
                                         if (t.isStringLiteral(element)) {
                                             return `'${element.value}'`;
                                         }
                                         else if (t.isNumericLiteral(element)) {
                                             return element.value;
                                         }
-                                        else if (t.isTemplateLiteral(element) && element.quasis.length === 1) {
+                                        else if (t.isTemplateLiteral(element) &&
+                                            element.quasis.length === 1) {
                                             // For simplicity, handling simple template literals without expressions
                                             return `\`${element.quasis[0].value.raw}\``;
                                         }
                                         // Extend with more types as needed
-                                        return 'unknown'; // Placeholder for elements that are not directly serializable
-                                    }).join(', ');
+                                        return "unknown"; // Placeholder for elements that are not directly serializable
+                                    })
+                                        .join(", ");
                                     this.cjsCodeComponents.properties.push(`${declaration.id.name}: new Set([${setItems}])`);
                                 }
                                 else {
@@ -346,7 +352,6 @@ class ConvertCommonJsToTs {
             this.fullCjsFile = await fs.readFile(file, "utf8");
             this.parseSourceCodeComponents();
             console.log(`Current file type: ${this.currentFileType}`);
-            console.log(`Current state of the conversion: ${this.currentStateOfTheConversion}`);
             //console.log(`All types: ${this.allTypes}`);
             //console.log(`Full project file tree: ${this.fullProjectFileTree}`);
             console.log(`Full CJS file: ${this.fullCjsFile}`);
@@ -367,6 +372,14 @@ class ConvertCommonJsToTs {
             // Save the new .ts file
             const newFilePath = file.replace(".cjs", ".ts");
             await fs.writeFile(newFilePath, this.currentStateOfTheConversion);
+            console.log(`Final conversion state: ${JSON.stringify(this.currentStateOfTheConversion, null, 2)}`);
+            this.tsCodeComponents = {
+                imports: [],
+                properties: [],
+                methods: [],
+                parentClass: null,
+                shell: "",
+            };
             // If new types are found, update the types.d.ts file
             // (This would involve analyzing the generated TypeScript code and updating type definitions accordingly)
         }
